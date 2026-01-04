@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Chess Master - Stable Elite</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<style>
+:root {
+    --white: #f0d9b5;
+    --black: #b58863;
+    --bg: #121212;
+    --accent: #779556;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
+body { 
+    background: var(--bg); 
+    display: flex; flex-direction: column; align-items: center; justify-content: center; 
+    height: 100vh; font-family: -apple-system, sans-serif; color: white;
+    overflow: hidden;
+}
+
+/* --- INTRO --- */
+#intro {
+    position: fixed; inset: 0; background: #000; z-index: 10000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.intro-icon { font-size: 50px; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } }
+
+/* --- MODAL --- */
+#modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9000;
+    display: none; align-items: center; justify-content: center;
+}
+.modal-content {
+    background: #222; padding: 30px; border-radius: 15px; text-align: center;
+    border: 2px solid var(--accent); width: 80%; max-width: 300px;
+}
+
+/* --- GAME LAYOUT --- */
+.game-box {
+    width: 100%; max-width: 380px; padding: 10px;
+}
+
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
+#board {
+    display: grid; grid-template-columns: repeat(8, 1fr);
+    width: 100%; aspect-ratio: 1/1;
+    border: 3px solid #444; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.cell {
+    width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+    position: relative; cursor: pointer;
+}
+.cell.light { background: var(--white); }
+.cell.dark { background: var(--black); }
+
+.piece { width: 90%; height: 90%; background-size: contain; background-repeat: no-repeat; background-position: center; }
+.selected { background-color: #f5f682 !important; }
+.hint::after { content: ""; width: 20%; height: 20%; background: rgba(0,0,0,0.1); border-radius: 50%; }
+
+/* --- CONTROLS --- */
+.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+button, select {
+    padding: 12px; border: none; border-radius: 8px; background: #333;
+    color: white; font-weight: bold; cursor: pointer; font-size: 14px;
+}
+.btn-primary { background: var(--accent); }
+
+#status { text-align: center; margin-top: 10px; font-size: 13px; color: #888; }
+</style>
+</head>
+<body>
+
+<div id="intro">
+    <div class="intro-icon">♟️</div>
+    <h3 style="margin-top:15px; letter-spacing: 3px;">CHESS MASTER</h3>
+</div>
+
+<div id="modal">
+    <div class="modal-content">
+        <h2 id="res-title">THẮNG!</h2>
+        <p id="res-msg" style="margin: 15px 0; color: #aaa;"></p>
+        <button onclick="resetGame()" class="btn-primary" style="width: 100%">CHƠI LẠI</button>
+    </div>
+</div>
+
+<div class="game-box">
+    <div class="header">
+        <span style="color: var(--accent); font-weight: bold;">LEVEL:</span>
+        <select id="level">
+            <option value="1">Dễ</option>
+            <option value="2" selected>Vừa</option>
+            <option value="3">Khó</option>
+        </select>
+    </div>
+
+    <div id="board"></div>
+
+    <div id="status">Sẵn sàng</div>
+
+    <div class="controls">
+        <button onclick="undo()">Hoàn tác</button>
+        <button class="btn-primary" onclick="resetGame()">Ván mới</button>
+    </div>
+</div>
+
+<script>
+const PIECES_IMG = {
+    'r': 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg',
+    'n': 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg',
+    'b': 'https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg',
+    'q': 'https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg',
+    'k': 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg',
+    'p': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg',
+    'R': 'https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg',
+    'N': 'https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg',
+    'B': 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg',
+    'Q': 'https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg',
+    'K': 'https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg',
+    'P': 'https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg'
+};
+
+const VALUES = { p:10, n:30, b:30, r:50, q:90, k:900, P:10, N:30, B:30, R:50, Q:90, K:900 };
+let board = [], history = [], selected = null, turn = 'white', isProcessing = false;
+
+window.onload = () => {
+    setTimeout(() => {
+        document.getElementById('intro').style.display = 'none';
+        resetGame();
+    }, 2000);
+};
+
+function resetGame() {
+    board = [
+        ['r','n','b','q','k','b','n','r'],
+        ['p','p','p','p','p','p','p','p'],
+        ['.','.','.','.','.','.','.','.'],
+        ['.','.','.','.','.','.','.','.'],
+        ['.','.','.','.','.','.','.','.'],
+        ['.','.','.','.','.','.','.','.'],
+        ['P','P','P','P','P','P','P','P'],
+        ['R','N','B','Q','K','B','N','R']
+    ];
+    selected = null; turn = 'white'; isProcessing = false; history = [];
+    document.getElementById('modal').style.display = 'none';
+    document.getElementById('status').innerText = "Đến lượt của bạn";
+    draw();
+}
+
+function draw() {
+    const b = document.getElementById('board');
+    b.innerHTML = '';
+    let hints = selected ? getValidMoves(selected.r, selected.c) : [];
+
+    for(let r=0; r<8; r++) {
+        for(let c=0; c<8; c++) {
+            const cell = document.createElement('div');
+            cell.className = `cell ${(r+c)%2===0 ? 'light' : 'dark'}`;
+            if(selected?.r === r && selected?.c === c) cell.classList.add('selected');
+            if(hints.some(h => h.r === r && h.c === c)) cell.classList.add('hint');
+
+            const p = board[r][c];
+            if(p !== '.') {
+                const piece = document.createElement('div');
+                piece.className = 'piece';
+                piece.style.backgroundImage = `url(${PIECES_IMG[p]})`;
+                cell.appendChild(piece);
+            }
+            cell.onclick = () => handleClick(r, c);
+            b.appendChild(cell);
+        }
+    }
+}
+
+function handleClick(r, c) {
+    if(isProcessing || turn !== 'white') return;
+    const p = board[r][c];
+
+    if(selected) {
+        if(getValidMoves(selected.r, selected.c).some(h => h.r === r && h.c === c)) {
+            executeMove(selected.r, selected.c, r, c);
+            turn = 'black';
+            isProcessing = true;
+            document.getElementById('status').innerText = "AI đang suy nghĩ...";
+            setTimeout(aiMove, 600);
+        } else {
+            selected = (p !== '.' && p === p.toUpperCase()) ? {r, c} : null;
+        }
+    } else if(p !== '.' && p === p.toUpperCase()) {
+        selected = {r, c};
+    }
+    draw();
+}
+
+function executeMove(r1, c1, r2, c2) {
+    history.push(JSON.parse(JSON.stringify(board)));
+    board[r2][c2] = board[r1][c1];
+    board[r1][c1] = '.';
+    // Tốt phong cấp
+    if(board[r2][c2] === 'P' && r2 === 0) board[r2][c2] = 'Q';
+    if(board[r2][c2] === 'p' && r2 === 7) board[r2][c2] = 'q';
+    checkGameStatus();
+}
+
+function aiMove() {
+    const lv = document.getElementById('level').value;
+    let moves = [];
+    for(let r=0; r<8; r++) for(let c=0; c<8; c++) {
+        if(board[r][c] !== '.' && board[r][c] === board[r][c].toLowerCase()) {
+            getValidMoves(r, c).forEach(m => {
+                let score = Math.random() * 5;
+                if(board[m.r][m.c] !== '.') score += VALUES[board[m.r][m.c].toLowerCase()] * 10;
+                moves.push({f: {r, c}, t: m, s: score});
+            });
+        }
+    }
+
+    if(moves.length) {
+        moves.sort((a,b) => b.s - a.s);
+        let move = (lv == "1") ? moves[Math.floor(Math.random()*moves.length)] : moves[0];
+        executeMove(move.f.r, move.f.c, move.t.r, move.t.c);
+    }
+    
+    turn = 'white';
+    isProcessing = false;
+    document.getElementById('status').innerText = "Lượt của bạn";
+    draw();
+}
+
+function getValidMoves(r, c) {
+    let v = [];
+    const isW = board[r][c] === board[r][c].toUpperCase();
+    for(let i=0; i<8; i++) for(let j=0; j<8; j++) if(canMove(r, c, i, j, isW)) v.push({r: i, c: j});
+    return v;
+}
+
+function canMove(r1, c1, r2, c2, isW) {
+    const p = board[r1][c1].toLowerCase();
+    const t = board[r2][c2];
+    if(t !== '.' && (t === t.toUpperCase()) === isW) return false;
+    const dr = r2-r1, dc = c2-c1;
+    if(p === 'p') {
+        const d = isW ? -1 : 1;
+        if(dc === 0 && dr === d && t === '.') return true;
+        if(dc === 0 && dr === d*2 && t === '.' && (isW?r1===6:r1===1) && board[r1+d][c1] === '.') return true;
+        if(Math.abs(dc) === 1 && dr === d && t !== '.') return true;
+        return false;
+    }
+    if(p === 'r') return (dr === 0 || dc === 0) && isPathClear(r1,c1,r2,c2);
+    if(p === 'b') return Math.abs(dr) === Math.abs(dc) && isPathClear(r1,c1,r2,c2);
+    if(p === 'n') return (Math.abs(dr) === 2 && Math.abs(dc) === 1) || (Math.abs(dr) === 1 && Math.abs(dc) === 2);
+    if(p === 'q') return (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) && isPathClear(r1,c1,r2,c2);
+    if(p === 'k') return Math.abs(dr) <= 1 && Math.abs(dc) <= 1;
+    return false;
+}
+
+function isPathClear(r1, c1, r2, c2) {
+    const dr = Math.sign(r2-r1), dc = Math.sign(c2-c1);
+    let r = r1+dr, c = c1+dc;
+    while(r !== r2 || c !== c2) {
+        if(board[r][c] !== '.') return false;
+        r += dr; c += dc;
+    }
+    return true;
+}
+
+function checkGameStatus() {
+    const f = board.flat().join('');
+    if(!f.includes('k')) end("BẠN THẮNG!", "AI đã bị tiêu diệt hoàn toàn.");
+    if(!f.includes('K')) end("BẠN THUA!", "Vua đã tử trận. Hãy cố gắng hơn.");
+}
+
+function end(t, m) {
+    document.getElementById('res-title').innerText = t;
+    document.getElementById('res-msg').innerText = m;
+    document.getElementById('modal').style.display = 'flex';
+    isProcessing = true;
+}
+
+function undo() {
+    if(history.length && !isProcessing) {
+        board = history.pop();
+        draw();
+    }
+}
+</script>
+</body>
+</html>
