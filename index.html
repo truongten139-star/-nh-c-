@@ -321,3 +321,32 @@ OS.init();
 </script>
 </body>
 </html>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBFWMN_ARngnTKzQnWdPSzQdJVYr2arB18",
+  authDomain: "mcpehost-88d6b.firebaseapp.com",
+  projectId: "mcpehost-88d6b",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// lưu data
+window.saveOnline = async (data) => {
+  await setDoc(doc(db, "mcpe", "state"), data);
+  alert("Đã lưu online");
+};
+
+// load data
+window.loadOnline = async () => {
+  const snap = await getDoc(doc(db, "mcpe", "state"));
+  if (snap.exists()) {
+    console.log("Data online:", snap.data());
+    return snap.data();
+  }
+  return null;
+};
+</script>
