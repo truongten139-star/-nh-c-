@@ -350,3 +350,79 @@ window.loadOnline = async () => {
   return null;
 };
 </script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+
+// --- Firebase config ---
+const firebaseConfig = {
+  apiKey: "AIzaSyBFWMN_ARngnTKzQnWdPSzQdJVYr2arB18",
+  authDomain: "mcpehost-88d6b.firebaseapp.com",
+  projectId: "mcpehost-88d6b",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// --- CURRENT VERSION ---
+const CURRENT_VERSION = "12.0";
+
+// --- CHECK VERSION ---
+async function checkVersion() {
+    try {
+        const snap = await getDoc(doc(db, "mcpe", "version"));
+        if(snap.exists()) {
+            const onlineV = snap.data().v;
+            if(onlineV !== CURRENT_VERSION) {
+                alert(`Web đã cập nhật phiên bản ${onlineV}, app sẽ reload để đồng bộ.`);
+                location.reload();
+            }
+        }
+    } catch(e) {
+        console.log("Check version error:", e);
+    }
+}
+setInterval(checkVersion, 10000); // kiểm tra mỗi 10s
+checkVersion(); // kiểm tra ngay khi load
+
+// --- LƯU / LOAD STATE ONLINE ---
+window.saveOnline = async (data) => {
+  try {
+      await setDoc(doc(db, "mcpe", "state"), data);
+      alert("Đã lưu online!");
+  } catch(e) {
+      console.log("Save error:", e);
+      alert("Lưu online thất bại!");
+  }
+};
+
+window.loadOnline = async () => {
+  try {
+      const snap = await getDoc(doc(db, "mcpe", "state"));
+      if(snap.exists()) {
+          console.log("Data online:", snap.data());
+          return snap.data();
+      }
+      return null;
+  } catch(e) {
+      console.log("Load error:", e);
+      return null;
+  }
+};
+
+// --- Ví dụ tích hợp với Chess ---
+document.addEventListener("DOMContentLoaded", async () => {
+    const saved = await loadOnline();
+    if(saved?.chess) {
+        Chess.board = saved.chess.board;
+        Chess.turn = saved.chess.turn;
+        Chess.history = saved.chess.history || [];
+        Chess.draw();
+    }
+
+    // Tự động lưu mỗi 15s
+    setInterval(() => {
+        saveOnline({ chess: { board: Chess.board, turn: Chess.turn, history: Chess.history } });
+    }, 15000);
+});
+</script>
