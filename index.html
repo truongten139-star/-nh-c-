@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MCPE Ocean OS v27 - Full Addons</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --primary: #3b82f6; --bg: #020617; --surface: #0f172a;
+            --text-main: #f8fafc; --text-sub: #94a3b8; --border: #1e293b;
+            --tile-light: #dee3e6; --tile-dark: #8ca2ad; --tile-sel: #f59e0b99;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text-main); overflow: hidden; height: 100vh; }
+
+        /* INTRO */
+        #splash { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .bar { width: 180px; height: 4px; background: #1e293b; border-radius: 10px; overflow: hidden; margin-top: 20px; }
+        .progress { width: 100%; height: 100%; background: var(--primary); animation: load 2s ease-in-out; transform-origin: left; }
+        @keyframes load { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+        /* LAYOUT & UI */
+        .page { display: none; height: 100vh; overflow-y: auto; padding: 20px 20px 120px; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 20px; margin-bottom: 20px; }
+        .btn { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 800; width: 100%; cursor: pointer; font-family: 'Rajdhani'; text-transform: uppercase; }
+        input { width: 100%; padding: 15px; background: #1e293b; border: 1px solid var(--border); border-radius: 12px; color: white; margin-bottom: 12px; outline: none; }
+
+        /* ADDONS LIST STYLE */
+        .item-row { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 15px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
+        .item-row:active { transform: scale(0.98); background: rgba(59, 130, 246, 0.1); }
+        .item-img { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; }
+
+        /* ADDON DETAIL MODAL */
+        #addon-modal { position: fixed; inset: 0; background: var(--bg); z-index: 6000; display: none; flex-direction: column; padding: 20px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .det-img-box { width: 100%; height: 200px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 80px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+
+        /* CHESS & NAV */
+        #game-view { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: none; flex-direction: column; }
+        #board-box { display: grid; grid-template-columns: repeat(8, 1fr); width: 95%; max-width: 400px; margin: 10px auto; aspect-ratio: 1/1; border: 6px solid #1e293b; border-radius: 10px; overflow: hidden; position: relative; }
+        .board-lock { position: absolute; inset: 0; z-index: 100; display: none; }
+        .tile { display: flex; align-items: center; justify-content: center; position: relative; }
+        .tile.l { background: var(--tile-light); } .tile.d { background: var(--tile-dark); }
+        .piece { width: 90%; height: 90%; background-size: contain; background-repeat: no-repeat; background-position: center; z-index: 5; }
+        .sel { background: var(--tile-sel) !important; }
+        .hint::after { content: ""; width: 22%; height: 22%; background: rgba(0,0,0,0.15); border-radius: 50%; }
+
+        nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 450px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px); border-radius: 24px; padding: 12px; display: flex; justify-content: space-around; border: 1px solid var(--border); z-index: 1000; }
+        .nav-i { font-size: 26px; color: #475569; cursor: pointer; transition: 0.3s; }
+        .nav-i.active { color: var(--primary); transform: translateY(-3px); }
+    </style>
+</head>
+<body>
+
+<script src="addons.js"></script>
+
+<div id="splash">
+    <h1 style="font-family:'Rajdhani'; letter-spacing:6px;">OCEAN<span style="color:var(--primary)">OS</span></h1>
+    <div class="bar"><div class="progress"></div></div>
+</div>
+
+<div id="addon-modal">
+    <div class="modal-header">
+        <h2 style="font-family:'Rajdhani';">THÔNG TIN <span style="color:var(--primary)">ADDON</span></h2>
+        <i class='bx bx-x' style="font-size:35px" onclick="AddonStore.close()"></i>
+    </div>
+    <div id="det-img-box" class="det-img-box">📦</div>
+    <h2 id="det-name" style="margin-bottom:10px; color:var(--primary)">Name</h2>
+    <div style="flex:1; overflow-y:auto;">
+        <p id="det-desc" style="color:var(--text-sub); line-height:1.6; font-size:14px;">Description...</p>
+    </div>
+    <button id="det-download" class="btn" style="margin-top:20px;">TẢI XUỐNG NGAY</button>
+</div>
+
+<div id="game-view">
+    <div style="padding:15px 20px; display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-family:'Rajdhani'">CHESS ARENA</h3>
+        <i class='bx bx-x' style="font-size:35px" onclick="Game.close()"></i>
+    </div>
+    <div style="padding:0 15px; text-align:center;">
+        <select id="level" onchange="Chess.reset()" style="width:100%; padding:12px; border-radius:12px; background:var(--surface); color:white; border:1px solid var(--border); margin-bottom:10px;">
+            <option value="1">DỄ</option> <option value="2">VỪA</option> <option value="3" selected>KHÓ</option>
+        </select>
+        <div id="board-box"><div id="lock-layer" class="board-lock"></div></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button class="btn" style="background:#475569" onclick="Chess.undo()">LÙI</button>
+            <button class="btn" onclick="Chess.reset()">MỚI</button>
+        </div>
+        <p id="game-status" style="margin-top:20px; font-weight:800; font-family:'Rajdhani'; color:var(--primary)">LƯỢT CỦA BẠN</p>
+    </div>
+</div>
+
+<div class="container">
+    <div id="home" class="page active">
+        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <div style="font-family:'Rajdhani'; font-size:26px; font-weight:800;">OCEAN<span>OS</span></div>
+            <div id="u-icon" style="width:40px;height:40px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800">?</div>
+        </header>
+        <div class="card" style="background: linear-gradient(135deg, #2563eb, #020617); border:none;">
+            <h2 id="hi-user">Chào ní!</h2>
+            <p style="font-size:13px; opacity:0.8; margin-top:5px;">Hệ thống Ocean v27 hoạt động.</p>
+        </div>
+        <div class="item-row" onclick="Game.open()">
+            <div class="item-img" style="background:var(--primary)">♟️</div>
+            <div style="flex:1"><b>Chess Master AI</b><p style="font-size:11px; color:var(--text-sub)">Chơi ngay</p></div>
+        </div>
+    </div>
+
+    <div id="addons" class="page">
+        <h2 style="font-family:'Rajdhani'; margin-bottom:20px;">KHO ADDONS</h2>
+        <div id="addon-list-container"></div>
+    </div>
+
+    <div id="profile" class="page">
+        <div id="auth-ui">
+            <div class="card">
+                <h3>ĐĂNG KÝ</h3>
+                <input id="u-user" placeholder="Tên...">
+                <input id="u-pass" type="password" placeholder="Pass...">
+                <button class="btn" onclick="Auth.process()">XÁC NHẬN</button>
+                <p onclick="Auth.switch()" style="text-align:center; margin-top:20px; font-size:13px; color:var(--text-sub); cursor:pointer">Chuyển sang <b>Đăng nhập</b></p>
+            </div>
+        </div>
+        <div id="user-ui" style="display:none" class="card">
+            <div style="text-align:center">
+                <div id="av-big" style="width:80px;height:80px;background:var(--primary);border-radius:20px;margin:0 auto 15px;display:flex;align-items:center;justify-content:center;font-size:35px;font-weight:800">?</div>
+                <h2 id="nm-big">User</h2>
+                <button class="btn" style="background:#ef4444; margin-top:25px;" onclick="Auth.logout()">ĐĂNG XUẤT</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<nav>
+    <i class='bx bxs-home-alt-2 nav-i active' onclick="Tab('home', this)"></i>
+    <i class='bx bxs-component nav-i' onclick="Tab('addons', this)"></i>
+    <i class='bx bxs-user-circle nav-i' onclick="Tab('profile', this)"></i>
+</nav>
+
+<script>
+/* --- CORE LOGIC (GIỮ NGUYÊN) --- */
+const Auth = {
+    isReg: true, data: JSON.parse(localStorage.getItem('ocean_v27')),
+    switch() { this.isReg = !this.isReg; }, // Logic chuyển đổi form đơn giản
+    process() {
+        const u = document.getElementById('u-user').value, p = document.getElementById('u-pass').value;
+        if(u && p) { localStorage.setItem('ocean_v27', JSON.stringify({u,p})); location.reload(); }
+    },
+    logout() { localStorage.removeItem('ocean_v27'); location.reload(); },
+    init() {
+        setTimeout(() => document.getElementById('splash').style.display='none', 2000);
+        if(this.data) {
+            document.getElementById('auth-ui').style.display='none';
+            document.getElementById('user-ui').style.display='block';
+            document.getElementById('hi-user').innerText = "Chào, " + this.data.u;
+            document.getElementById('nm-big').innerText = this.data.u;
+            document.getElementById('u-icon').innerText = this.data.u[0].toUpperCase();
+            document.getElementById('av-big').innerText = this.data.u[0].toUpperCase();
+        }
+    }
+};
+
+const Chess = {
+    IMG: { 'p': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg', 'P': 'https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg', 'r': 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg', 'R': 'https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg', 'n': 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg', 'N': 'https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg', 'b': 'https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg', 'B': 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg', 'q': 'https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg', 'Q': 'https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg', 'k': 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg', 'K': 'https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg' },
+    board: [], turn: 'W', sel: null, history: [], gameOver: false,
+    reset() {
+        this.board = [['r','n','b','q','k','b','n','r'],['p','p','p','p','p','p','p','p'],['.','.','.','.','.','.','.','.'],['.','.','.','.','.','.','.','.'],['.','.','.','.','.','.','.','.'],['.','.','.','.','.','.','.','.'],['P','P','P','P','P','P','P','P'],['R','N','B','Q','K','B','N','R']];
+        this.turn = 'W'; this.sel = null; this.history = []; this.gameOver = false;
+        document.getElementById('lock-layer').style.display = 'none';
+        document.getElementById('game-status').innerText = "LƯỢT CỦA BẠN";
+        this.draw();
+    },
+    draw() {
+        const box = document.getElementById('board-box'); 
+        if(box.querySelectorAll('.tile').length === 0) {
+             box.innerHTML = '<div id="lock-layer" class="board-lock"></div>';
+             for(let r=0; r<8; r++) for(let c=0; c<8; c++) {
+                const t = document.createElement('div'); t.className = `tile ${(r+c)%2===0?'l':'d'}`;
+                t.onclick = () => this.click(r, c); box.appendChild(t);
+             }
+        }
+        const tiles = box.querySelectorAll('.tile');
+        let moves = this.sel ? this.getMoves(this.sel.r, this.sel.c) : [];
+        tiles.forEach((t, i) => {
+            let r = Math.floor(i/8), c = i%8;
+            t.className = `tile ${(r+c)%2===0?'l':'d'}`; t.innerHTML = '';
+            if(this.sel?.r===r && this.sel?.c===c) t.classList.add('sel');
+            if(moves.some(m => m.r===r && m.c===c)) t.classList.add('hint');
+            if(this.board[r][c] !== '.') {
+                const img = document.createElement('div'); img.className='piece';
+                img.style.backgroundImage=`url(${this.IMG[this.board[r][c]]})`; t.appendChild(img);
+            }
+        });
+    },
+    click(r, c) {
+        if(this.turn !== 'W' || this.gameOver) return;
+        if(this.sel && this.getMoves(this.sel.r, this.sel.c).some(m => m.r===r && m.c===c)) {
+            this.execute(this.sel.r, this.sel.c, r, c);
+            if(!this.gameOver) {
+                document.getElementById('lock-layer').style.display = 'block';
+                document.getElementById('game-status').innerText = "AI ĐANG NGHĨ...";
+                setTimeout(() => this.ai(), 600);
+            }
+        } else this.sel = (this.board[r][c] !== '.' && this.board[r][c] === this.board[r][c].toUpperCase()) ? {r,c} : null;
+        this.draw();
+    },
+    execute(r1, c1, r2, c2) {
+        this.history.push(JSON.stringify(this.board));
+        if(this.board[r2][c2].toLowerCase() === 'k') { this.gameOver = true; document.getElementById('game-status').innerText = this.turn==='W'?"BẠN THẮNG!":"BẠN THUA!"; }
+        this.board[r2][c2] = this.board[r1][c1]; this.board[r1][c1] = '.';
+        this.turn = this.turn === 'W' ? 'B' : 'W'; this.sel = null;
+    },
+    ai() {
+        let moves = [];
+        for(let r=0; r<8; r++) for(let c=0; c<8; c++) {
+            if(this.board[r][c] !== '.' && this.board[r][c] === this.board[r][c].toLowerCase()) {
+                this.getMoves(r, c).forEach(m => {
+                    let s = Math.random() * 5;
+                    if(this.board[m.r][m.c] !== '.') s += 50;
+                    moves.push({f:{r,c}, t:m, s:s});
+                });
+            }
+        }
+        if(moves.length > 0) {
+            moves.sort((a,b) => b.s - a.s); let m = moves[0];
+            this.execute(m.f.r, m.f.c, m.t.r, m.t.c);
+        }
+        document.getElementById('lock-layer').style.display = 'none';
+        if(!this.gameOver) document.getElementById('game-status').innerText = "LƯỢT CỦA BẠN";
+        this.draw();
+    },
+    getMoves(r, c) {
+        let ms = []; for(let i=0; i<8; i++) for(let j=0; j<8; j++) if(this.can(r, c, i, j)) ms.push({r:i, c:j});
+        return ms;
+    },
+    can(r1, c1, r2, c2) {
+        const p = this.board[r1][c1].toLowerCase(), t = this.board[r2][c2], isW = this.board[r1][c1] === this.board[r1][c1].toUpperCase();
+        if(t !== '.' && (t === t.toUpperCase()) === isW) return false;
+        const dr = r2-r1, dc = c2-c1;
+        if(p === 'p') {
+            const d = isW ? -1 : 1;
+            if(dc === 0 && dr === d && t === '.') return true;
+            if(dc === 0 && dr === d*2 && t === '.' && (isW?r1===6:r1===1)) return this.board[r1+d][c1] === '.';
+            return Math.abs(dc) === 1 && dr === d && t !== '.';
+        }
+        if(p === 'r') return (dr === 0 || dc === 0) && this.clear(r1,c1,r2,c2);
+        if(p === 'b') return Math.abs(dr) === Math.abs(dc) && this.clear(r1,c1,r2,c2);
+        if(p === 'q') return (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) && this.clear(r1,c1,r2,c2);
+        if(p === 'n') return (Math.abs(dr)===2 && Math.abs(dc)===1) || (Math.abs(dr)===1 && Math.abs(dc)===2);
+        if(p === 'k') return Math.abs(dr) <= 1 && Math.abs(dc) <= 1;
+        return false;
+    },
+    clear(r1, c1, r2, c2) {
+        let dr = Math.sign(r2-r1), dc = Math.sign(c2-c1), r = r1+dr, c = c1+dc;
+        while(r !== r2 || c !== c2) { if(this.board[r][c] !== '.') return false; r += dr; c += dc; }
+        return true;
+    },
+    undo() { if(this.history.length > 0 && !this.gameOver) { this.board = JSON.parse(this.history.pop()); this.turn = 'W'; this.draw(); } }
+};
+
+function Tab(id, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.nav-i').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+}
+const Game = { open() { document.getElementById('game-view').style.display='flex'; Chess.reset(); }, close() { document.getElementById('game-view').style.display='none'; } };
+
+Auth.init();
+</script>
+</body>
+</html>
