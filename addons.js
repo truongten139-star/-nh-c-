@@ -9,7 +9,7 @@ const AddonStore = {
             icon: "", // Để trống vì đã có ảnh nền
             // SỬA Ở ĐÂY: Dùng url('link_anh')
             imageColor: "url('https://i.ibb.co/B7W25dq/mqdefault.jpg') center/cover no-repeat", 
-            link: "https://www.mediafire.com/file/cdvczt4y93w5vsf/MUTANTS++Add-On+2.0.mcaddon+(SFILE.MOBI).zip/file"
+            link: "https://limewire.com/d/6hqy9#x49ozk4OI5 "
         },
         {
             id: 2,
