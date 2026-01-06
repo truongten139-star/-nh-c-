@@ -3,12 +3,12 @@ const AddonStore = {
     data: [
         {
             id: 1,
-            name: "Ocean Shader V3",
-            shortDesc: "Đồ họa nước siêu thực",
-            fullDesc: "Gói Shader nhẹ nhưng cực đẹp, tối ưu cho máy cấu hình thấp. Hiệu ứng nước phản chiếu, mây trôi 4K và ánh sáng Neon ban đêm.",
+            name: "Mutants Addons",
+            shortDesc: "addons khám phá phiêu lưu",
+            fullDesc: "addon này sẽ biến cho các con quái trở nên khổng lồ khiến bạn khó khăn hơn trong sinh tồn.",
             icon: "🌊",
-            imageColor: "#0ea5e9", // Màu nền ảnh đại diện (hoặc thay bằng link ảnh)
-            link: "https://google.com" // Link tải
+            imageColor: "<a href="https://imgbb.com/"><img src="https://i.ibb.co/B7W25dq/mqdefault.jpg" alt="mqdefault" border="0" /></a>", // Màu nền ảnh đại diện (hoặc thay bằng link ảnh)
+            link: "https://www.mediafire.com/file/cdvczt4y93w5vsf/MUTANTS++Add-On+2.0.mcaddon+(SFILE.MOBI).zip/file" // Link tải
         },
         {
             id: 2,
