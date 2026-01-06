@@ -4,11 +4,12 @@ const AddonStore = {
         {
             id: 1,
             name: "Mutants Addons",
-            shortDesc: "addons khám phá phiêu lưu",
-            fullDesc: "addon này sẽ biến cho các con quái trở nên khổng lồ khiến bạn khó khăn hơn trong sinh tồn.",
-            icon: "🌊",
-            imageColor: "<a href="https://imgbb.com/"><img src="https://i.ibb.co/B7W25dq/mqdefault.jpg" alt="mqdefault" border="0" /></a>", // Màu nền ảnh đại diện (hoặc thay bằng link ảnh)
-            link: "https://www.mediafire.com/file/cdvczt4y93w5vsf/MUTANTS++Add-On+2.0.mcaddon+(SFILE.MOBI).zip/file" // Link tải
+            shortDesc: "Addons khám phá phiêu lưu",
+            fullDesc: "Addon này sẽ biến cho các con quái trở nên khổng lồ khiến bạn khó khăn hơn trong sinh tồn.",
+            icon: "", // Để trống vì đã có ảnh nền
+            // SỬA Ở ĐÂY: Dùng url('link_anh')
+            imageColor: "url('https://i.ibb.co/B7W25dq/mqdefault.jpg') center/cover no-repeat", 
+            link: "https://www.mediafire.com/file/cdvczt4y93w5vsf/MUTANTS++Add-On+2.0.mcaddon+(SFILE.MOBI).zip/file"
         },
         {
             id: 2,
@@ -18,28 +19,10 @@ const AddonStore = {
             icon: "🤖",
             imageColor: "#ef4444",
             link: "#"
-        },
-        {
-            id: 3,
-            name: "Better UI/UX",
-            shortDesc: "Giao diện trong suốt",
-            fullDesc: "Thay đổi toàn bộ giao diện Inventory, Chest, Menu thành dạng kính mờ (Glassmorphism) cực sang trọng.",
-            icon: "✨",
-            imageColor: "#8b5cf6",
-            link: "#"
-        },
-        {
-            id: 4,
-            name: "One Piece Addon",
-            shortDesc: "Trái ác quỷ & Haki",
-            fullDesc: "Hệ thống trái ác quỷ hoàn chỉnh, Haki vũ trang, Haki quan sát và các Boss hải tặc khét tiếng.",
-            icon: "🏴‍☠️",
-            imageColor: "#f59e0b",
-            link: "#"
         }
     ],
 
-    // --- LOGIC HỆ THỐNG (KHÔNG CẦN SỬA) ---
+    // --- LOGIC HỆ THỐNG (GIỮ NGUYÊN) ---
     init() {
         const container = document.getElementById('addon-list-container');
         if (!container) return;
@@ -60,17 +43,18 @@ const AddonStore = {
         const item = this.data.find(i => i.id === id);
         if (!item) return;
 
-        // Điền dữ liệu vào Modal
         document.getElementById('det-name').innerText = item.name;
         document.getElementById('det-desc').innerText = item.fullDesc;
-        document.getElementById('det-img-box').style.backgroundColor = item.imageColor;
-        document.getElementById('det-img-box').innerText = item.icon;
         
-        // Gán link tải
+        // Cập nhật ảnh cho Modal chi tiết
+        const imgBox = document.getElementById('det-img-box');
+        imgBox.style.background = item.imageColor;
+        imgBox.style.backgroundColor = item.imageColor.includes('url') ? 'transparent' : item.imageColor;
+        imgBox.innerText = item.icon;
+        
         const btn = document.getElementById('det-download');
         btn.onclick = () => window.location.href = item.link;
 
-        // Hiện Modal
         document.getElementById('addon-modal').style.display = 'flex';
     },
 
@@ -79,5 +63,4 @@ const AddonStore = {
     }
 };
 
-// Tự động chạy khi web tải xong
 document.addEventListener('DOMContentLoaded', () => AddonStore.init());
