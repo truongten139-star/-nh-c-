@@ -9,7 +9,7 @@ const AddonStore = {
             icon: "", // Để trống vì đã có ảnh nền
             // SỬA Ở ĐÂY: Dùng url('link_anh')
             imageColor: "url('https://i.ibb.co/B7W25dq/mqdefault.jpg') center/cover no-repeat", 
-            link: "https://limewire.com/d/6hqy9#x49ozk4OI5 "
+            link: "https://drive.google.com/file/d/1F0sNsApxnMFeb7GQ7iN-xenU-7glVu5m/view?usp=drivesdk"
         },
         {
             id: 2,
