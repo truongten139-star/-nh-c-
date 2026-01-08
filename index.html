@@ -1,83 +1,123 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OceanOS – Maintenance</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ocean OS v32 - Fix Final</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;800&family=Rajdhani:wght@700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root { --p: #3b82f6; --bg: #020617; --s: #0f172a; --b: #1e293b; --tl: #dee3e6; --td: #8ca2ad; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Outfit'; color:#f8fafc; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); overflow: hidden; height: 100vh; }
 
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+        /* INTRO */
+        #splash { position:fixed; inset:0; background:var(--bg); z-index:10000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+        .bar { width:150px; height:4px; background:var(--b); border-radius:10px; margin-top:15px; overflow:hidden; }
+        .progress { width:0%; height:100%; background:var(--p); animation:load 2s linear forwards; }
+        @keyframes load { to { width:100%; } }
 
-<style>
-:root {
-    --bg:#020617;
-    --primary:#3b82f6;
-    --surface:#0f172a;
-    --border:#1e293b;
-    --text:#f8fafc;
-    --sub:#94a3b8;
-}
-*{box-sizing:border-box;font-family:'Outfit',sans-serif}
-body{
-    margin:0;
-    height:100vh;
-    background:var(--bg);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:var(--text);
-}
-.box{
-    background:linear-gradient(135deg,#0f172a,#020617);
-    border:1px solid var(--border);
-    border-radius:26px;
-    padding:45px 35px;
-    text-align:center;
-    max-width:360px;
-    animation:pop .4s ease;
-}
-.logo{
-    font-family:'Rajdhani';
-    font-size:28px;
-    letter-spacing:6px;
-    margin-bottom:10px;
-}
-.logo span{color:var(--primary)}
-.icon{
-    font-size:50px;
-    margin:20px 0;
-}
-h1{
-    font-family:'Rajdhani';
-    font-size:22px;
-    margin-bottom:10px;
-}
-p{
-    font-size:14px;
-    color:var(--sub);
-    line-height:1.6;
-}
-.footer{
-    margin-top:25px;
-    font-size:12px;
-    opacity:.4;
-}
-@keyframes pop{
-    from{transform:scale(.9);opacity:0}
-    to{transform:scale(1);opacity:1}
-}
-</style>
+        /* MAIN UI */
+        .page { display:none; padding:20px; height:calc(100vh - 80px); overflow-y:auto; } .active { display:block; }
+        .card { background: var(--s); border: 1px solid var(--b); border-radius: 20px; padding: 20px; margin-bottom: 12px; display:flex; align-items:center; gap:15px; }
+        
+        /* ADDONS TAB */
+        .sub-nav { display:flex; gap:10px; margin-bottom:15px; }
+        .sub-tab { flex:1; padding:12px; text-align:center; background:var(--s); border-radius:12px; border:1px solid var(--b); font-weight:800; cursor:pointer; }
+        .sub-tab.active { background:var(--p); border-color:var(--p); }
+        .item-row { display:flex; align-items:center; gap:12px; padding:12px; background:rgba(255,255,255,0.03); border-radius:15px; border:1px solid var(--b); margin-bottom:10px; }
+        .item-img { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+        .dl-btn { background:#334155; padding:5px 12px; border-radius:8px; font-size:12px; font-weight:bold; }
+
+        /* GAME BOARD */
+        #game-view, #mode-modal { position:fixed; inset:0; background:var(--bg); z-index:5000; display:none; flex-direction:column; }
+        #mode-modal { background:rgba(2,6,23,0.96); z-index:6000; justify-content:center; align-items:center; }
+        #board-box { margin: 60px auto 0; width:95%; max-width:360px; aspect-ratio:1; }
+        .chess-grid { display:grid; grid-template-columns:repeat(8,1fr); border:5px solid var(--b); border-radius:8px; overflow:hidden; }
+        .xo-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+        .xo-tile { background:var(--s); border:2px solid var(--b); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:50px; font-weight:900; }
+        .tile { display:flex; align-items:center; justify-content:center; position:relative; }
+        .l { background: var(--tl); } .d { background: var(--td); }
+        .piece { width:90%; height:90%; background-size:contain; background-repeat:no-repeat; background-position:center; }
+        .hint::after { content:''; position:absolute; width:25%; height:25%; background:rgba(0,0,0,0.2); border-radius:50%; }
+        .capture::after { content:''; position:absolute; width:80%; height:80%; border:3px solid rgba(239,68,68,0.6); border-radius:50%; }
+        .sel { background:#f59e0b99 !important; }
+
+        nav { position:fixed; bottom:0; left:0; width:100%; background:var(--s); border-top:1px solid var(--b); padding:15px; display:flex; justify-content:space-around; }
+        .nav-i { font-size: 26px; color: #64748b; } .nav-i.active { color: var(--p); }
+    </style>
 </head>
-
 <body>
-    <div class="box">
-        <div class="logo">OCEAN<span>OS</span></div>
-        <div class="icon">🛠️</div>
-        <h1>HỆ THỐNG ĐANG BẢO TRÌ</h1>
-        <p>
-            OceanOS đang được nâng cấp hệ thống.<br>
-            Vui lòng quay lại sau.
-        </p>
-        <div class="footer">OceanOS v29 • Chess Edition</div>
+
+<div id="splash">
+    <h1 style="font-family:'Rajdhani'">OCEAN OS</h1>
+    <div class="bar"><div class="progress"></div></div>
+</div>
+
+<div id="home" class="page active">
+    <h1 style="font-family:'Rajdhani'; margin-bottom:20px;">GAME CENTER</h1>
+    <div class="card" onclick="openMenu('chess')">
+        <div style="font-size:30px; background:var(--p); padding:10px; border-radius:12px;">♟️</div>
+        <div><b>Cờ Vua</b><p style="font-size:12px; color:#94a3b8">Hỗ trợ AI & 1vs1</p></div>
     </div>
+    <div class="card" onclick="openMenu('xo')">
+        <div style="font-size:30px; background:#ef4444; padding:10px; border-radius:12px;">❌</div>
+        <div><b>Caro (X-O)</b><p style="font-size:12px; color:#94a3b8">AI Bất Bại</p></div>
+    </div>
+</div>
+
+<div id="addons" class="page">
+    <h1 style="font-family:'Rajdhani'; margin-bottom:20px;">DOWNLOADS</h1>
+    <div class="sub-nav">
+        <div id="btn-mc" class="sub-tab active" onclick="AddonManager.switchTab('mc')">Minecraft</div>
+        <div id="btn-lq" class="sub-tab" onclick="AddonManager.switchTab('lq')">Liên Quân</div>
+    </div>
+    <div id="addon-list-container"></div>
+</div>
+
+<div id="mode-modal">
+    <h2 style="font-family:'Rajdhani'; margin-bottom:30px;">CHỌN CHẾ ĐỘ</h2>
+    <button onclick="startGame('ai')" style="width:200px; padding:15px; background:var(--p); border:none; border-radius:15px; font-weight:bold; margin-bottom:10px;">🤖 ĐẤU VỚI AI</button>
+    <button onclick="startGame('pvp')" style="width:200px; padding:15px; background:var(--s); border:1px solid var(--b); border-radius:15px; font-weight:bold; margin-bottom:20px;">👥 ĐẤU 1 VS 1</button>
+    <p onclick="document.getElementById('mode-modal').style.display='none'" style="color:#94a3b8">Hủy bỏ</p>
+</div>
+
+<div id="game-view">
+    <div style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
+        <b>ARENA</b> <i class='bx bx-x' style="font-size:35px" onclick="document.getElementById('game-view').style.display='none'"></i>
+    </div>
+    <div id="board-box"></div>
+    <div style="text-align:center; padding:20px;">
+        <b id="game-status" style="color:var(--p); font-size:20px;">...</b><br><br>
+        <button onclick="resetGame()" style="padding:10px 30px; background:var(--s); border:1px solid var(--b); border-radius:10px;">CHƠI LẠI</button>
+    </div>
+</div>
+
+<nav>
+    <i id="nav-home" class='bx bxs-game nav-i active' onclick="changeTab('home')"></i>
+    <i id="nav-addons" class='bx bxs-download nav-i' onclick="changeTab('addons')"></i>
+</nav>
+
+<script src="game_core.js"></script>
+<script>
+    // Intro
+    setTimeout(()=> { document.getElementById('splash').style.display='none'; }, 2200);
+
+    let currentG = '';
+    function changeTab(id) {
+        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+        document.querySelectorAll('.nav-i').forEach(i=>i.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('nav-'+id).classList.add('active');
+        if(id === 'addons') AddonManager.render();
+    }
+
+    function openMenu(g) { currentG = g; document.getElementById('mode-modal').style.display = 'flex'; }
+    function startGame(m) {
+        document.getElementById('mode-modal').style.display = 'none';
+        document.getElementById('game-view').style.display = 'flex';
+        if(currentG === 'chess') Chess.init(m); else TicTacToe.init(m);
+    }
+    function resetGame() { if(currentG === 'chess') Chess.init(Chess.mode); else TicTacToe.init(TicTacToe.mode); }
+</script>
 </body>
 </html>
