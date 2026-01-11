@@ -2,63 +2,126 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <title>Hệ Thống Đang Bảo Trì</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess AI: Cyber Light Edition</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #eef2f5;
+            --glass: rgba(255, 255, 255, 0.7);
+            --primary: #00d2ff;
+            --secondary: #2979ff;
+            --accent: #ff0055;
+            --text: #1a2a3a;
+            --shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            font-family: 'Rajdhani', sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(0,210,255,0.15), transparent 50%),
+                radial-gradient(circle at bottom right, rgba(41,121,255,0.15), transparent 50%),
+                var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+        }
+
+        .maintenance-box {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.6);
+            animation: fadeIn 1s ease;
+        }
+
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            animation: spin 3s linear infinite;
+            display: inline-block;
+            filter: drop-shadow(0 0 10px var(--primary));
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            margin: 10px 0;
+            letter-spacing: 2px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            opacity: 0.85;
+            margin-bottom: 25px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(0,210,255,0.6);
+            animation: pulse 1.5s infinite;
+        }
+
+        footer {
+            margin-top: 25px;
+            font-size: 0.9rem;
+            opacity: 0.6;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px rgba(0,210,255,0.4); }
+            50% { box-shadow: 0 0 20px rgba(0,210,255,0.9); }
+            100% { box-shadow: 0 0 10px rgba(0,210,255,0.4); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
 </head>
 <body>
 
-    <div id="intro-screen">
-        <div class="cyber-circle"></div>
-        <h1 class="glitch-text" data-text="NEURAL CHESS">NEURAL CHESS</h1>
-        <p class="sub-text">SYSTEM INITIALIZING...</p>
-        <div class="loading-bar"><div class="fill"></div></div>
-        <button id="start-btn" onclick="startGame()">KHỞI ĐỘNG HỆ THỐNG</button>
+    <div class="maintenance-box">
+        <div class="icon">⚙️</div>
+        <h1>HỆ THỐNG ĐANG BẢO TRÌ</h1>
+        <p>
+            Website hiện đang được nâng cấp để mang lại trải nghiệm tốt hơn.<br>
+            Vui lòng quay lại sau.
+        </p>
+        <div class="status">MAINTENANCE MODE</div>
+
+        <footer>
+            © 2026 • Neural System
+        </footer>
     </div>
 
-    <div id="game-container" class="hidden">
-        
-        <div class="sidebar glass-panel">
-            <h2 class="logo">AI CORE <span class="blink">●</span></h2>
-            <div id="game-status" class="status-box">SẴN SÀNG KẾT NỐI</div>
-            
-            <div class="ai-chat-area">
-                <div class="avatar">🤖</div>
-                <div id="ai-bubble" class="bubble">Đang tải dữ liệu khịa...</div>
-            </div>
-
-            <div class="eval-bar-container">
-                <div id="eval-fill" class="eval-fill"></div>
-            </div>
-        </div>
-
-        <div class="main-area">
-            <div id="board-box" class="board"></div>
-            
-            <div class="controls">
-                <button class="btn neo-btn" onclick="Chess.undo()">HOÀN TÁC ↩</button>
-                <button class="btn neo-btn" onclick="Chess.reset()">VÁN MỚI ↻</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="game_core.js"></script>
-    <script>
-        // Hiệu ứng Intro
-        function startGame() {
-            const intro = document.getElementById('intro-screen');
-            const game = document.getElementById('game-container');
-            
-            intro.style.opacity = '0';
-            setTimeout(() => {
-                intro.style.display = 'none';
-                game.classList.remove('hidden');
-                game.classList.add('fade-in');
-                // Gọi AI khịa câu mở đầu
-                if(TrashTalk) TrashTalk.speak('start');
-            }, 800);
-        }
-    </script>
 </body>
 </html>
