@@ -1,127 +1,145 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Hệ Thống Đang Bảo Trì</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
-
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ocean OS v35</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;800&family=Rajdhani:wght@600;800&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <style>
-        :root {
-            --bg: #eef2f5;
-            --glass: rgba(255, 255, 255, 0.7);
-            --primary: #00d2ff;
-            --secondary: #2979ff;
-            --accent: #ff0055;
-            --text: #1a2a3a;
-            --shadow: 0 10px 30px rgba(0,0,0,0.15);
-        }
+        /* --- STYLE CSS TÍCH HỢP --- */
+        :root { --p: #00f3ff; --a: #ff003c; --bg: #050505; --card: rgba(20,20,30,0.6); --b: 1px solid rgba(255,255,255,0.1); }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Outfit',sans-serif; user-select:none; -webkit-tap-highlight-color:transparent; }
+        body { background: var(--bg); color:#fff; height:100vh; overflow:hidden; background-image: radial-gradient(circle at 50% 0%, #1a1a3a, #000); }
+        
+        /* INTRO */
+        #splash { position:fixed; inset:0; background:#000; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:0.5s; }
+        .glitch { font-family:'Rajdhani'; font-size:50px; font-weight:800; text-shadow:2px 2px var(--a), -2px -2px var(--p); letter-spacing:5px; animation:glitch 1s infinite alternate; }
+        .load-bar { width:200px; height:4px; background:#333; margin-top:20px; overflow:hidden; border-radius:2px; }
+        .load-fill { width:0%; height:100%; background:var(--p); box-shadow:0 0 10px var(--p); animation:load 2s forwards; }
+        @keyframes glitch { 0%{transform:translate(0)} 20%{transform:translate(-2px,2px)} 40%{transform:translate(-2px,-2px)} 60%{transform:translate(2px,2px)} 80%{transform:translate(2px,-2px)} 100%{transform:translate(0)} }
+        @keyframes load { to{width:100%} }
 
-        * {
-            box-sizing: border-box;
-            user-select: none;
-        }
+        /* UI */
+        .page { display:none; height:100vh; padding:20px 20px 100px; overflow-y:auto; animation:up 0.4s; } .active { display:block; }
+        @keyframes up { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        
+        .card { background:var(--card); backdrop-filter:blur(10px); border:var(--b); border-radius:20px; padding:20px; margin-bottom:15px; display:flex; align-items:center; gap:15px; position:relative; overflow:hidden; transition:0.3s; }
+        .card:active { transform:scale(0.98); background:rgba(255,255,255,0.05); }
+        .card::before { content:''; position:absolute; left:0; top:0; height:100%; width:4px; background:var(--p); opacity:0; transition:0.3s; }
+        .card:active::before { opacity:1; }
+        .icon { width:55px; height:55px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:28px; background:rgba(255,255,255,0.05); border:var(--b); box-shadow:0 0 15px rgba(0,0,0,0.5); }
 
-        body {
-            margin: 0;
-            height: 100vh;
-            font-family: 'Rajdhani', sans-serif;
-            background:
-                radial-gradient(circle at top left, rgba(0,210,255,0.15), transparent 50%),
-                radial-gradient(circle at bottom right, rgba(41,121,255,0.15), transparent 50%),
-                var(--bg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text);
-        }
+        /* ADDONS UI */
+        .sub-nav { display:flex; gap:10px; margin-bottom:20px; }
+        .sub-tab { flex:1; padding:12px; text-align:center; background:rgba(255,255,255,0.05); border:var(--b); border-radius:12px; font-weight:bold; cursor:pointer; color:#94a3b8; transition:0.3s; }
+        .sub-tab.active { background:var(--p); color:#000; box-shadow:0 0 15px rgba(0,243,255,0.3); }
+        .addon-item { display:flex; align-items:center; gap:15px; padding:15px; border-bottom:var(--b); }
+        .addon-icon { width:45px; height:45px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; }
+        .btn-dl { padding:8px 12px; background:var(--b); border-radius:8px; }
 
-        .maintenance-box {
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            border-radius: 20px;
-            padding: 40px 30px;
-            max-width: 420px;
-            width: 90%;
-            text-align: center;
-            box-shadow: var(--shadow);
-            border: 1px solid rgba(255,255,255,0.6);
-            animation: fadeIn 1s ease;
-        }
+        /* GAME BOARD */
+        #game-view { position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:5000; display:none; flex-direction:column; align-items:center; justify-content:center; }
+        .g-container { width:90vw; max-width:400px; aspect-ratio:1/1; border:2px solid rgba(255,255,255,0.1); border-radius:15px; background:rgba(10,10,20,0.8); position:relative; box-shadow:0 0 30px rgba(0,243,255,0.1); display: flex; align-items: center; justify-content: center; }
+        
+        .chess-grid { display:grid; grid-template-columns:repeat(8,1fr); width:100%; height:100%; }
+        .tile { display:flex; align-items:center; justify-content:center; position:relative; }
+        .l { background:#e2e8f0; } .d { background:#475569; }
+        .piece { width:90%; height:90%; background-size:contain; background-repeat:no-repeat; background-position:center; z-index:2; }
+        .hint::after { content:''; position:absolute; width:30%; height:30%; background:rgba(0,0,0,0.4); border-radius:50%; }
+        .capture::after { content:''; position:absolute; width:100%; height:100%; border:4px solid var(--a); box-sizing:border-box; z-index:1; }
+        .sel { background:rgba(0,243,255,0.5) !important; }
 
-        .icon {
-            font-size: 4rem;
-            margin-bottom: 15px;
-            animation: spin 3s linear infinite;
-            display: inline-block;
-            filter: drop-shadow(0 0 10px var(--primary));
-        }
+        .xo-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:10px; width:100%; height:100%; }
+        .xo-cell { background:rgba(255,255,255,0.05); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:60px; font-weight:900; font-family:'Rajdhani'; text-shadow:0 0 20px currentColor; cursor:pointer; }
+        .xo-cell.x { color:var(--p); } .xo-cell.o { color:var(--a); }
 
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.8rem;
-            margin: 10px 0;
-            letter-spacing: 2px;
-        }
+        /* MODALS */
+        .modal { position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(5px); z-index:6000; display:none; align-items:center; justify-content:center; }
+        .box { background:#0f0f1a; border:1px solid var(--p); padding:30px; border-radius:20px; width:85%; max-width:320px; text-align:center; box-shadow:0 0 50px rgba(0,243,255,0.2); animation:pop 0.3s; }
+        @keyframes pop { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+        .btn-cy { width:100%; padding:15px; margin-top:10px; background:transparent; border:1px solid #94a3b8; color:#fff; border-radius:10px; font-weight:bold; cursor:pointer; font-family:'Rajdhani'; letter-spacing:1px; }
+        .btn-cy.pri { background:var(--p); color:#000; border:none; box-shadow:0 0 15px var(--p); }
 
-        p {
-            font-size: 1.1rem;
-            opacity: 0.85;
-            margin-bottom: 25px;
-        }
-
-        .status {
-            display: inline-block;
-            padding: 8px 18px;
-            border-radius: 999px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            color: white;
-            font-weight: bold;
-            letter-spacing: 1px;
-            box-shadow: 0 0 15px rgba(0,210,255,0.6);
-            animation: pulse 1.5s infinite;
-        }
-
-        footer {
-            margin-top: 25px;
-            font-size: 0.9rem;
-            opacity: 0.6;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 10px rgba(0,210,255,0.4); }
-            50% { box-shadow: 0 0 20px rgba(0,210,255,0.9); }
-            100% { box-shadow: 0 0 10px rgba(0,210,255,0.4); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        nav { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); width:85%; max-width:400px; background:rgba(20,20,30,0.8); backdrop-filter:blur(20px); border-radius:30px; border:var(--b); display:flex; justify-content:space-around; padding:15px; z-index:1000; box-shadow:0 10px 40px rgba(0,0,0,0.5); }
+        .nav-i { font-size:28px; color:#64748b; transition:0.3s; position:relative; }
+        .nav-i.active { color:var(--p); transform:translateY(-5px); }
+        .nav-i.active::after { content:''; position:absolute; bottom:-8px; left:50%; transform:translateX(-50%); width:5px; height:5px; background:var(--p); border-radius:50%; box-shadow:0 0 10px var(--p); }
     </style>
 </head>
 <body>
 
-    <div class="maintenance-box">
-        <div class="icon">⚙️</div>
-        <h1>HỆ THỐNG ĐANG BẢO TRÌ</h1>
-        <p>
-            Website hiện đang được nâng cấp để mang lại trải nghiệm tốt hơn.<br>
-            Vui lòng quay lại sau.
-        </p>
-        <div class="status">MAINTENANCE MODE</div>
+<div id="splash">
+    <div class="glitch">OCEAN OS</div>
+    <div class="load-bar"><div class="load-fill"></div></div>
+</div>
 
-        <footer>
-            © 2026 • Neural System
-        </footer>
+<div id="home" class="page active">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+        <div><h1 style="font-family:'Rajdhani'">OCEAN<span style="color:var(--p)">OS</span></h1><p style="font-size:12px; color:#94a3b8">v35 Ultimate</p></div>
+        <div style="width:40px; height:40px; background:rgba(255,255,255,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center;"><i class='bx bxs-user'></i></div>
     </div>
+    
+    <div class="card" onclick="UI.menu('chess')">
+        <div class="icon" style="color:var(--p)">♟️</div>
+        <div><h3 style="font-family:'Rajdhani'">CHESS PRO</h3><p style="font-size:12px; color:#94a3b8">AI Siêu Tốc & 1vs1</p></div>
+    </div>
+    <div class="card" onclick="UI.menu('xo')">
+        <div class="icon" style="color:var(--a)">❌</div>
+        <div><h3 style="font-family:'Rajdhani'">CARO X-O</h3><p style="font-size:12px; color:#94a3b8">Chế độ Bất Bại</p></div>
+    </div>
+</div>
 
+<div id="addons" class="page">
+    <h2 style="font-family:'Rajdhani'; margin-bottom:20px;">KHO TẢI VỀ</h2>
+    <div class="sub-nav">
+        <div id="tab-mc" class="sub-tab active" onclick="AddonManager.switch('mc')">Minecraft</div>
+        <div id="tab-lq" class="sub-tab" onclick="AddonManager.switch('lq')">Liên Quân</div>
+    </div>
+    <div id="addon-list"></div>
+</div>
+
+<div id="game-view">
+    <div style="width:100%; max-width:400px; display:flex; justify-content:space-between; padding:20px;">
+        <h2 id="g-title" style="font-family:'Rajdhani'; color:var(--p)">GAME</h2>
+        <i class='bx bx-x' style="font-size:30px; cursor:pointer" onclick="document.getElementById('game-view').style.display='none'"></i>
+    </div>
+    <div class="g-container" id="game-board"></div>
+    <div style="text-align:center; margin-top:20px;">
+        <p id="g-status" style="font-family:'Rajdhani'; font-size:18px; color:#94a3b8">WAITING...</p>
+        <button class="btn-cy" style="width:150px; margin-top:15px;" onclick="UI.reset()">RESET</button>
+    </div>
+</div>
+
+<div id="modal-mode" class="modal">
+    <div class="box">
+        <h2 style="font-family:'Rajdhani'; margin-bottom:20px;">CHỌN CHẾ ĐỘ</h2>
+        <button class="btn-cy pri" onclick="UI.start('ai')">🤖 ĐẤU VỚI AI</button>
+        <button class="btn-cy" onclick="UI.start('pvp')">👥 ĐẤU 1 VS 1</button>
+        <div style="margin-top:15px; font-size:12px; color:#94a3b8; cursor:pointer" onclick="document.getElementById('modal-mode').style.display='none'">ĐÓNG</div>
+    </div>
+</div>
+
+<div id="modal-res" class="modal">
+    <div class="box">
+        <h1 id="res-msg" style="font-family:'Rajdhani'; font-size:40px; margin-bottom:10px;">WIN</h1>
+        <button class="btn-cy pri" onclick="UI.reset()">CHƠI LẠI</button>
+        <button class="btn-cy" onclick="document.getElementById('modal-res').style.display='none'; document.getElementById('game-view').style.display='none'">THOÁT</button>
+    </div>
+</div>
+
+<nav>
+    <i class='bx bxs-dashboard nav-i active' onclick="Tab('home', this)"></i>
+    <i class='bx bxs-box nav-i' onclick="Tab('addons', this)"></i>
+</nav>
+
+<script src="game_core.js"></script>
+<script>
+    setTimeout(() => { document.getElementById('splash').style.opacity=0; setTimeout(()=>document.getElementById('splash').style.display='none',500); }, 2200);
+    function Tab(id, el) {
+        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-i').forEach(i=>i.classList.remove('active')); el.classList.add('active');
+        if(id==='addons') AddonManager.render();
+    }
+</script>
 </body>
 </html>
