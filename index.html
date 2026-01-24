@@ -1,145 +1,189 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ocean OS v35</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;800&family=Rajdhani:wght@600;800&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ocean OS v38 - MCPEOS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <style>
-        /* --- STYLE CSS TÍCH HỢP --- */
-        :root { --p: #00f3ff; --a: #ff003c; --bg: #050505; --card: rgba(20,20,30,0.6); --b: 1px solid rgba(255,255,255,0.1); }
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Outfit',sans-serif; user-select:none; -webkit-tap-highlight-color:transparent; }
-        body { background: var(--bg); color:#fff; height:100vh; overflow:hidden; background-image: radial-gradient(circle at 50% 0%, #1a1a3a, #000); }
+        :root {
+            --bg: #0b0c15; --accent: #00f3ff; --text: #e2e8f0; --panel: rgba(255,255,255,0.03);
+            --border: 1px solid rgba(100, 116, 139, 0.2);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Chakra Petch', sans-serif; user-select:none; }
+        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* INTRO LAYER FIXED & SMOOTH */
+        #intro-layer {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.5s ease-in-out; /* Hiệu ứng mờ dần khi tắt */
+        }
+        .boot-txt { 
+            color: var(--accent); font-family: monospace; margin-bottom: 20px; 
+            font-size: 30px; font-weight: 800; letter-spacing: 5px; /* Logo to đẹp */
+            text-shadow: 0 0 15px var(--accent);
+        }
+        .boot-loader { width: 220px; height: 3px; background: #1a1a1a; border-radius: 4px; overflow: hidden; }
+        .boot-bar { 
+            width: 0%; height: 100%; background: var(--accent); 
+            box-shadow: 0 0 15px var(--accent); 
+            transition: width 2s ease-in-out; /* Chạy mượt trong 2 giây */
+        }
+
+        /* UI CHÍNH */
+        .page { display: none; padding: 20px; height: 100%; overflow-y: auto; padding-bottom: 100px; }
+        .page.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .logo { font-size: 26px; font-weight: 800; letter-spacing: 3px; }
+        .logo span { color: var(--accent); }
+
+        /* CARDS */
+        .card {
+            background: var(--panel); border: var(--border); border-radius: 16px; padding: 25px; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 20px; transition: 0.2s; cursor: pointer;
+        }
+        .card:active { transform: scale(0.97); border-color: var(--accent); background: rgba(0, 243, 255, 0.05); }
+        .c-icon { font-size: 36px; color: var(--accent); text-shadow: 0 0 10px rgba(0,243,255,0.4); }
+
+        /* ADDONS */
+        .tab-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .sub-tab { flex: 1; padding: 12px; text-align: center; border: var(--border); border-radius: 12px; color: #64748b; font-weight: bold; cursor: pointer; }
+        .sub-tab.active { background: var(--accent); color: #000; box-shadow: 0 0 15px rgba(0,243,255,0.3); }
         
-        /* INTRO */
-        #splash { position:fixed; inset:0; background:#000; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:0.5s; }
-        .glitch { font-family:'Rajdhani'; font-size:50px; font-weight:800; text-shadow:2px 2px var(--a), -2px -2px var(--p); letter-spacing:5px; animation:glitch 1s infinite alternate; }
-        .load-bar { width:200px; height:4px; background:#333; margin-top:20px; overflow:hidden; border-radius:2px; }
-        .load-fill { width:0%; height:100%; background:var(--p); box-shadow:0 0 10px var(--p); animation:load 2s forwards; }
-        @keyframes glitch { 0%{transform:translate(0)} 20%{transform:translate(-2px,2px)} 40%{transform:translate(-2px,-2px)} 60%{transform:translate(2px,2px)} 80%{transform:translate(2px,-2px)} 100%{transform:translate(0)} }
-        @keyframes load { to{width:100%} }
+        .item { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: var(--border); }
+        .i-icon { width: 45px; height: 45px; border-radius: 10px; border: 1px solid; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .btn-dl { background: var(--panel); border: var(--border); color: #fff; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* UI */
-        .page { display:none; height:100vh; padding:20px 20px 100px; overflow-y:auto; animation:up 0.4s; } .active { display:block; }
-        @keyframes up { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        /* MODAL CHỌN CHẾ ĐỘ */
+        #modal-mode {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000;
+            display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+        }
+        .modal-box {
+            background: #111; border: 1px solid var(--accent); padding: 30px;
+            border-radius: 20px; width: 80%; max-width: 320px; text-align: center;
+            box-shadow: 0 0 40px rgba(0,243,255,0.15);
+        }
+        .btn-mode {
+            width: 100%; padding: 15px; margin-bottom: 12px; background: transparent;
+            border: 1px solid #333; color: #fff; border-radius: 12px; font-weight: bold; font-family: 'Chakra Petch';
+            display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
+        }
+        .btn-mode:active { background: var(--accent); color: #000; }
+
+        /* GAME UI */
+        #game-ui {
+            position: fixed; inset: 0; background: var(--bg); z-index: 5000;
+            display: none; flex-direction: column; transition: transform 0.3s;
+            transform: translateY(100%);
+        }
+        #game-ui.show { transform: translateY(0); }
         
-        .card { background:var(--card); backdrop-filter:blur(10px); border:var(--b); border-radius:20px; padding:20px; margin-bottom:15px; display:flex; align-items:center; gap:15px; position:relative; overflow:hidden; transition:0.3s; }
-        .card:active { transform:scale(0.98); background:rgba(255,255,255,0.05); }
-        .card::before { content:''; position:absolute; left:0; top:0; height:100%; width:4px; background:var(--p); opacity:0; transition:0.3s; }
-        .card:active::before { opacity:1; }
-        .icon { width:55px; height:55px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:28px; background:rgba(255,255,255,0.05); border:var(--b); box-shadow:0 0 15px rgba(0,0,0,0.5); }
+        /* BÀN CỜ */
+        .g-board-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px; }
+        .chess-board {
+            width: 95vmin; height: 95vmin; max-width: 420px; max-height: 420px;
+            display: grid; grid-template-columns: repeat(8, 1fr);
+            border: 2px solid #333; border-radius: 4px; overflow: hidden;
+        }
+        .sq { display: flex; align-items: center; justify-content: center; position: relative; }
+        .sq.l { background: #e2e8f0; } .sq.d { background: #475569; }
+        .sq.sel { background: #facc15 !important; }
+        .sq.hint::after { content:''; width: 30%; height: 30%; background: rgba(0,0,0,0.3); border-radius: 50%; }
+        .sq.cap::after { content:''; position: absolute; inset: 0; border: 4px solid #ef4444; }
+        .pc { width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center; z-index: 2; }
 
-        /* ADDONS UI */
-        .sub-nav { display:flex; gap:10px; margin-bottom:20px; }
-        .sub-tab { flex:1; padding:12px; text-align:center; background:rgba(255,255,255,0.05); border:var(--b); border-radius:12px; font-weight:bold; cursor:pointer; color:#94a3b8; transition:0.3s; }
-        .sub-tab.active { background:var(--p); color:#000; box-shadow:0 0 15px rgba(0,243,255,0.3); }
-        .addon-item { display:flex; align-items:center; gap:15px; padding:15px; border-bottom:var(--b); }
-        .addon-icon { width:45px; height:45px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; }
-        .btn-dl { padding:8px 12px; background:var(--b); border-radius:8px; }
+        .xo-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 85vmin; height: 85vmin; max-width: 350px; max-height: 350px; }
+        .xo-cell { background: var(--panel); border: var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 50px; font-weight: bold; cursor: pointer; }
+        .xo-cell.X { color: var(--accent); text-shadow: 0 0 15px var(--accent); }
+        .xo-cell.O { color: #ef4444; text-shadow: 0 0 15px #ef4444; }
 
-        /* GAME BOARD */
-        #game-view { position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:5000; display:none; flex-direction:column; align-items:center; justify-content:center; }
-        .g-container { width:90vw; max-width:400px; aspect-ratio:1/1; border:2px solid rgba(255,255,255,0.1); border-radius:15px; background:rgba(10,10,20,0.8); position:relative; box-shadow:0 0 30px rgba(0,243,255,0.1); display: flex; align-items: center; justify-content: center; }
+        /* RESULT MODAL */
+        #res-modal {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 7000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
         
-        .chess-grid { display:grid; grid-template-columns:repeat(8,1fr); width:100%; height:100%; }
-        .tile { display:flex; align-items:center; justify-content:center; position:relative; }
-        .l { background:#e2e8f0; } .d { background:#475569; }
-        .piece { width:90%; height:90%; background-size:contain; background-repeat:no-repeat; background-position:center; z-index:2; }
-        .hint::after { content:''; position:absolute; width:30%; height:30%; background:rgba(0,0,0,0.4); border-radius:50%; }
-        .capture::after { content:''; position:absolute; width:100%; height:100%; border:4px solid var(--a); box-sizing:border-box; z-index:1; }
-        .sel { background:rgba(0,243,255,0.5) !important; }
-
-        .xo-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:10px; width:100%; height:100%; }
-        .xo-cell { background:rgba(255,255,255,0.05); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:60px; font-weight:900; font-family:'Rajdhani'; text-shadow:0 0 20px currentColor; cursor:pointer; }
-        .xo-cell.x { color:var(--p); } .xo-cell.o { color:var(--a); }
-
-        /* MODALS */
-        .modal { position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(5px); z-index:6000; display:none; align-items:center; justify-content:center; }
-        .box { background:#0f0f1a; border:1px solid var(--p); padding:30px; border-radius:20px; width:85%; max-width:320px; text-align:center; box-shadow:0 0 50px rgba(0,243,255,0.2); animation:pop 0.3s; }
-        @keyframes pop { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
-        .btn-cy { width:100%; padding:15px; margin-top:10px; background:transparent; border:1px solid #94a3b8; color:#fff; border-radius:10px; font-weight:bold; cursor:pointer; font-family:'Rajdhani'; letter-spacing:1px; }
-        .btn-cy.pri { background:var(--p); color:#000; border:none; box-shadow:0 0 15px var(--p); }
-
-        nav { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); width:85%; max-width:400px; background:rgba(20,20,30,0.8); backdrop-filter:blur(20px); border-radius:30px; border:var(--b); display:flex; justify-content:space-around; padding:15px; z-index:1000; box-shadow:0 10px 40px rgba(0,0,0,0.5); }
-        .nav-i { font-size:28px; color:#64748b; transition:0.3s; position:relative; }
-        .nav-i.active { color:var(--p); transform:translateY(-5px); }
-        .nav-i.active::after { content:''; position:absolute; bottom:-8px; left:50%; transform:translateX(-50%); width:5px; height:5px; background:var(--p); border-radius:50%; box-shadow:0 0 10px var(--p); }
+        /* NAV */
+        .nav {
+            position: fixed; bottom: 0; width: 100%; height: 75px;
+            background: rgba(11, 12, 21, 0.95); border-top: var(--border);
+            display: flex; justify-content: space-around; align-items: center; z-index: 100;
+        }
+        .nav-btn { color: #64748b; font-size: 28px; transition: 0.3s; padding: 10px; }
+        .nav-btn.active { color: var(--accent); transform: translateY(-5px); text-shadow: 0 0 10px var(--accent); }
     </style>
 </head>
 <body>
 
-<div id="splash">
-    <div class="glitch">OCEAN OS</div>
-    <div class="load-bar"><div class="load-fill"></div></div>
-</div>
+    <div id="intro-layer">
+        <div class="boot-txt" id="boot-text">MCPEOS</div>
+        <div class="boot-loader"><div class="boot-bar" id="boot-bar"></div></div>
+    </div>
 
-<div id="home" class="page active">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-        <div><h1 style="font-family:'Rajdhani'">OCEAN<span style="color:var(--p)">OS</span></h1><p style="font-size:12px; color:#94a3b8">v35 Ultimate</p></div>
-        <div style="width:40px; height:40px; background:rgba(255,255,255,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center;"><i class='bx bxs-user'></i></div>
+    <div id="home" class="page active">
+        <header><div class="logo">OCEAN<span>OS</span></div><i class='bx bxs-user-circle' style="font-size:30px;color:#64748b"></i></header>
+        
+        <h3 style="color:#64748b; margin-bottom:15px; font-size:14px">GAMES</h3>
+        <div class="card" onclick="Game.openMenu('chess')">
+            <i class='bx bxs-chess c-icon'></i>
+            <div><h3>MASTER CHESS</h3><p style="font-size:12px; color:#64748b; margin-top:4px">Dual Mode (AI & PvP)</p></div>
+        </div>
+        <div class="card" onclick="Game.openMenu('xo')">
+            <i class='bx bxs-grid c-icon' style="color:#ef4444"></i>
+            <div><h3>CARO X-O</h3><p style="font-size:12px; color:#64748b; margin-top:4px">Dual Mode (AI & PvP)</p></div>
+        </div>
     </div>
-    
-    <div class="card" onclick="UI.menu('chess')">
-        <div class="icon" style="color:var(--p)">♟️</div>
-        <div><h3 style="font-family:'Rajdhani'">CHESS PRO</h3><p style="font-size:12px; color:#94a3b8">AI Siêu Tốc & 1vs1</p></div>
-    </div>
-    <div class="card" onclick="UI.menu('xo')">
-        <div class="icon" style="color:var(--a)">❌</div>
-        <div><h3 style="font-family:'Rajdhani'">CARO X-O</h3><p style="font-size:12px; color:#94a3b8">Chế độ Bất Bại</p></div>
-    </div>
-</div>
 
-<div id="addons" class="page">
-    <h2 style="font-family:'Rajdhani'; margin-bottom:20px;">KHO TẢI VỀ</h2>
-    <div class="sub-nav">
-        <div id="tab-mc" class="sub-tab active" onclick="AddonManager.switch('mc')">Minecraft</div>
-        <div id="tab-lq" class="sub-tab" onclick="AddonManager.switch('lq')">Liên Quân</div>
+    <div id="addons" class="page">
+        <header><div class="logo">DOWN<span>LOAD</span></div></header>
+        <div class="tab-bar">
+            <div id="btn-mc" class="sub-tab active" onclick="Downloads.switch('mc')">Minecraft</div>
+            <div id="btn-lq" class="sub-tab" onclick="Downloads.switch('lq')">Liên Quân</div>
+        </div>
+        <div id="dl-list"></div>
     </div>
-    <div id="addon-list"></div>
-</div>
 
-<div id="game-view">
-    <div style="width:100%; max-width:400px; display:flex; justify-content:space-between; padding:20px;">
-        <h2 id="g-title" style="font-family:'Rajdhani'; color:var(--p)">GAME</h2>
-        <i class='bx bx-x' style="font-size:30px; cursor:pointer" onclick="document.getElementById('game-view').style.display='none'"></i>
+    <div id="modal-mode">
+        <div class="modal-box">
+            <h2 style="margin-bottom:20px; color:#fff">CHỌN CHẾ ĐỘ</h2>
+            <button class="btn-mode" onclick="Game.start('ai')"><i class='bx bxs-bot'></i> VS COMPUTER</button>
+            <button class="btn-mode" onclick="Game.start('pvp')"><i class='bx bxs-user'></i> 1 VS 1 PLAYER</button>
+            <div style="margin-top:15px; font-size:13px; color:#64748b; cursor:pointer" onclick="document.getElementById('modal-mode').style.display='none'">Đóng</div>
+        </div>
     </div>
-    <div class="g-container" id="game-board"></div>
-    <div style="text-align:center; margin-top:20px;">
-        <p id="g-status" style="font-family:'Rajdhani'; font-size:18px; color:#94a3b8">WAITING...</p>
-        <button class="btn-cy" style="width:150px; margin-top:15px;" onclick="UI.reset()">RESET</button>
+
+    <div id="game-ui">
+        <div style="padding:15px 20px; display:flex; justify-content:space-between; align-items:center;">
+            <b id="g-title" style="color:var(--accent)">GAME</b>
+            <i class='bx bx-x' style="font-size:30px; cursor:pointer" onclick="Game.close()"></i>
+        </div>
+        
+        <div class="g-board-area" id="board-area"></div>
+        
+        <div style="text-align:center; padding:20px;">
+            <p id="g-stt" style="color:#94a3b8; font-size:15px; margin-bottom:20px">READY</p>
+            <button onclick="Game.reset()" style="padding:10px 40px; background:var(--accent); border:none; border-radius:8px; font-weight:bold;">RESET</button>
+        </div>
+
+        <div id="res-modal">
+            <h1 id="res-txt" style="color:#fff; font-size:40px; margin-bottom:10px">WIN</h1>
+            <p id="res-sub" style="color:#94a3b8; margin-bottom:20px">Game Over</p>
+            <button onclick="Game.reset()" style="padding:12px 30px; background:var(--accent); border:none; border-radius:8px; font-weight:bold;">CHƠI LẠI</button>
+            <button onclick="Game.close()" style="background:transparent; color:#fff; border:1px solid #555; padding:10px 30px; border-radius:8px; margin-top:10px;">THOÁT</button>
+        </div>
     </div>
-</div>
 
-<div id="modal-mode" class="modal">
-    <div class="box">
-        <h2 style="font-family:'Rajdhani'; margin-bottom:20px;">CHỌN CHẾ ĐỘ</h2>
-        <button class="btn-cy pri" onclick="UI.start('ai')">🤖 ĐẤU VỚI AI</button>
-        <button class="btn-cy" onclick="UI.start('pvp')">👥 ĐẤU 1 VS 1</button>
-        <div style="margin-top:15px; font-size:12px; color:#94a3b8; cursor:pointer" onclick="document.getElementById('modal-mode').style.display='none'">ĐÓNG</div>
+    <div class="nav">
+        <i class='bx bxs-dashboard nav-btn active' onclick="App.switchTab('home')"></i>
+        <i class='bx bxs-cloud-download nav-btn' onclick="App.switchTab('addons')"></i>
     </div>
-</div>
 
-<div id="modal-res" class="modal">
-    <div class="box">
-        <h1 id="res-msg" style="font-family:'Rajdhani'; font-size:40px; margin-bottom:10px;">WIN</h1>
-        <button class="btn-cy pri" onclick="UI.reset()">CHƠI LẠI</button>
-        <button class="btn-cy" onclick="document.getElementById('modal-res').style.display='none'; document.getElementById('game-view').style.display='none'">THOÁT</button>
-    </div>
-</div>
-
-<nav>
-    <i class='bx bxs-dashboard nav-i active' onclick="Tab('home', this)"></i>
-    <i class='bx bxs-box nav-i' onclick="Tab('addons', this)"></i>
-</nav>
-
-<script src="game_core.js"></script>
-<script>
-    setTimeout(() => { document.getElementById('splash').style.opacity=0; setTimeout(()=>document.getElementById('splash').style.display='none',500); }, 2200);
-    function Tab(id, el) {
-        document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-i').forEach(i=>i.classList.remove('active')); el.classList.add('active');
-        if(id==='addons') AddonManager.render();
-    }
-</script>
+    <script src="game_core.js"></script>
+    <script>window.onload = App.init;</script>
 </body>
 </html>
